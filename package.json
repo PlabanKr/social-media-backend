@@ -13,6 +13,7 @@
   "author": "Plaban Kumar Mondal",
   "license": "MPL-2.0",
   "dependencies": {
+    "@types/cors": "^2.8.13",
     "@types/pg": "^8.6.6",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
