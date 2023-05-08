@@ -7,11 +7,6 @@ router.get('/:id', (req: Request, res: Response) => {
     res.send(`user id ${id}`);
 });
 
-router.get('/email/:email', (req: Request, res: Response) => {
-    const email = req.params.email;
-    res.send(`user email ${email}}`);
-});
-
 router.get('/', (req: Request, res: Response) => {
     res.send('all users');
 });
