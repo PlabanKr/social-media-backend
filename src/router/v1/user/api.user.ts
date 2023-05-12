@@ -64,6 +64,28 @@ router.post('/', async (req: Request, res: Response) => {
 
 });
 
-
+router.post('/login', async (req: Request, res: Response) => {
+    try {
+        const { email, password } = req.body;
+        pool.query('SELECT * FROM users WHERE email = $1', [email], async (error: Error, results: QueryResult<any>) => {
+            if(error) {
+                throw error;
+            }
+            if(results.rows.length === 0) {
+                return res.status(400).send('Email or Password is wrong');
+            }
+            const user = results.rows[0];
+            const validPassword = await bcrypt.compare(password, user.hashed_password);
+            if(!validPassword) {
+                return res.status(400).send('Email or Password is wrong');
+            }
+            const token = jwt.sign(user, process.env.TOKEN_SECRET || 'secret', { expiresIn: 60*60*24*7 })
+            res.status(200).json({token: token, user: user});
+        });
+    } catch (error) {
+        console.log('Error: ', error);
+        res.status(500).send('Internal Server Error\n' + error);
+    }
+});
 
 export default router;
