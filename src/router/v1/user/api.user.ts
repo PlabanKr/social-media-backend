@@ -98,4 +98,47 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 });
 
+/* --- UPDATE USER --- */
+router.put('/update', verifyToken, (req: Request, res: Response) => {
+    try {
+        const { email, update } = req.body;
+        if(!req.body) {
+            // TODO: implement throw error after adding error handling
+            // throw new Error('No query parameters provided');
+            return res.status(400).send('No query parameters provided');
+        }
+        pool.query(`SELECT uid FROM users WHERE email = $1`, [email], (error: Error, results: QueryResult<any>) => {
+            if(error) {
+                throw error;
+            }
+            const id = results.rows[0].uid;
+            pool.query(
+                `UPDATE users
+                SET ${Object.keys(update).map((key, index) => `${key} = $${index + 1}`).join(", ")}
+                WHERE uid = $${Object.keys(update).length + 1};`
+                , [...Object.values(update), id], (error: Error) => {
+                    if(error) {
+                        throw error;
+                    }
+                    pool.query(
+                        `SELECT * FROM users WHERE uid = $1`, [id], (error: Error, selectResults: QueryResult<any>) => {
+                        if(error) {
+                            throw error;
+                        }
+                        res.status(201).json({ message: "User updated successfully",data: selectResults.rows[0] });
+                    });
+                });
+        });
+        // pool.query(
+        //     `UPDATE users
+        //     SET ${Object.keys(query).map(key => `${key} = $${key}`).join(", ")}
+        //     WHERE id = $1;`
+        //     ,);
+        // return res.status(200).send(update);
+    } catch (error) {
+        console.log('Error: ', error);
+        res.status(500).send('Internal Server Error\n' + error);
+    }
+});
+
 export default router;
