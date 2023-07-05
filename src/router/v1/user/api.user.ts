@@ -6,7 +6,7 @@ import { z } from "zod";
 import jwt from "jsonwebtoken";
 
 // Middleware Imports
-import { verifyToken } from "../../../middleware/auth.middleware";
+import { verifyToken, authenticate } from "../../../middleware/auth.middleware";
 
 // Model and DB Pool Imports
 import { UserSchemaCreate } from "../../../models/users.model";
@@ -99,8 +99,7 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 /* --- UPDATE USER --- */
-// TODO: implement user authorization
-router.put('/update', verifyToken, (req: Request, res: Response) => {
+router.put('/update', verifyToken, authenticate, (req: Request, res: Response) => {
     try {
         const { email, update } = req.body;
         if(!req.body) {
@@ -143,8 +142,8 @@ router.put('/update', verifyToken, (req: Request, res: Response) => {
 });
 
 /* --- DELETE USER --- */
-// TODO: implement user and admin authorization
-router.delete('/delete', verifyToken, (req: Request, res: Response) => {
+// TODO: implement admin authorization
+router.delete('/delete', verifyToken, authenticate, (req: Request, res: Response) => {
     try {
         const { email } = req.body;
         if(!req.body) {

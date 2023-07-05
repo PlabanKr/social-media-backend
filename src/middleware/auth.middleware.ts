@@ -17,3 +17,14 @@ export const verifyToken = (req: RequestWithUser, res: Response, next: NextFunct
         console.log('Error: ', error);
     }
 } 
+
+export const authenticate = (req: RequestWithUser, res: Response, next: NextFunction) => {
+    const email = req.body.email;
+    const userEmail = req.user;
+    
+    if(email === userEmail) {
+        next();
+    } else {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
+}
