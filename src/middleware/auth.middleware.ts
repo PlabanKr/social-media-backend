@@ -13,8 +13,12 @@ export const verifyToken = (req: RequestWithUser, res: Response, next: NextFunct
         const decoded = jwt.verify(token, process.env.TOKEN_SECRET || 'secret') as TokenPayload;
         req.user = decoded.email;
         next();
-    } catch (error) {
-        console.log('Error: ', error);
+    } catch (error: any) {
+        if (error.name === 'TokenExpiredError') {
+            res.status(401).send('Token expired');
+        } else {
+            next(error);
+        }
     }
 } 
 
