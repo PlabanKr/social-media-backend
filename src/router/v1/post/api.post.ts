@@ -162,4 +162,41 @@ router.post('/like/:id', verifyToken, async (req: RequestWithUser, res: Response
     }
 });
 
+/* --- REMOVE LIKE FROM A POST --- */
+router.delete('/dislike/:id', verifyToken, async (req: RequestWithUser, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        pool.query('SELECT uid FROM users WHERE email = $1', [req.user], (error: Error, results: QueryResult<any>) => {
+            if(error) {
+                throw error;
+            }
+            const user = results.rows[0].uid;
+            pool.query('DELETE FROM post_likes WHERE user_id = $1 AND post_id = $2 RETURNING *',
+            [
+                user,
+                id
+            ],
+            (error: Error, results: QueryResult<any>) => {
+                if(error) {
+                    throw error;
+                }
+                const post_like = results.rows[0];
+                pool.query('UPDATE posts SET like_count = like_count - 1 WHERE pid = $1', [id], (error: Error, results: QueryResult<any>) => {
+                    if(error) {
+                        throw error;
+                    }
+                    res.status(204).json({
+                        message: 'Post like removed',
+                        post_like: post_like,
+                        like_count: results.rows[0]
+                    });
+                });
+            });
+        });
+    } catch (error) {
+        console.log('Error: ', error);
+        res.status(500).send('Internal Server Error\n' + error);
+    }
+});
+
 export default router;
