@@ -95,4 +95,35 @@ router.post('/media', verifyToken, upload.single('image'), async (req: RequestWi
     }
 });
 
+/* --- CREATE NEW POST WITH NO IMAGE --- */
+router.post('/', verifyToken, async (req: RequestWithUser, res: Response) => {
+    try {
+        const { title, content } = req.body;
+        pool.query('SELECT uid FROM users WHERE email = $1', [req.user], (error: Error, results: QueryResult<any>) => {
+            if(error) {
+                throw error;
+            }
+            const author = results.rows[0].uid;
+            pool.query('INSERT INTO posts (post_title, post_body, author_id, has_media, media, like_count) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [
+                title || null,
+                content || null,
+                author || null,
+                false,
+                null,
+                0
+            ],
+            (error: Error, results: QueryResult<any>) => {
+                if(error) {
+                    throw error;
+                }
+                res.status(201).json(results.rows[0]);
+            });
+        });
+    } catch (error) {
+        console.log('Error: ', error);
+        res.status(500).send('Internal Server Error\n' + error);
+    }
+});
+
 export default router;
