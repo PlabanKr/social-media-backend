@@ -226,5 +226,35 @@ router.post('/save/:id', verifyToken, async (req: RequestWithUser, res: Response
     }
 });
 
+/* --- REMOVE SAVED POST --- */
+router.delete('/save/:id', verifyToken, async (req: RequestWithUser, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        pool.query('SELECT uid FROM users WHERE email = $1', [req.user], (error: Error, results: QueryResult<any>) => {
+            if(error) {
+                throw error;
+            }
+            const user = results.rows[0].uid;
+            pool.query('DELETE FROM user_saved_posts WHERE user_id = $1 AND post_id = $2 RETURNING *',
+            [
+                user,
+                id
+            ],
+            (error: Error, results: QueryResult<any>) => {
+                if(error) {
+                    throw error;
+                }
+                res.status(204).json({
+                    message: 'Post removed from saved posts',
+                    post: results.rows[0]
+                });
+            });
+        });
+    } catch (error) {
+        console.log('Error: ', error);
+        res.status(500).send('Internal Server Error\n' + error);
+    }
+});
+
 
 export default router;
