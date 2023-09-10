@@ -199,4 +199,32 @@ router.delete('/dislike/:id', verifyToken, async (req: RequestWithUser, res: Res
     }
 });
 
+/* --- SAVE A POST --- */
+router.post('/save/:id', verifyToken, async (req: RequestWithUser, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        pool.query('SELECT uid FROM users WHERE email = $1', [req.user], (error: Error, results: QueryResult<any>) => {
+            if(error) {
+                throw error;
+            }
+            const user = results.rows[0].uid;
+            pool.query('INSERT INTO user_saved_posts (user_id, post_id) VALUES ($1, $2) RETURNING *',
+            [
+                user,
+                id
+            ],
+            (error: Error, results: QueryResult<any>) => {
+                if(error) {
+                    throw error;
+                }
+                res.status(201).json(results.rows[0]);
+            });
+        });
+    } catch (error) {
+        console.log('Error: ', error);
+        res.status(500).send('Internal Server Error\n' + error);
+    }
+});
+
+
 export default router;
