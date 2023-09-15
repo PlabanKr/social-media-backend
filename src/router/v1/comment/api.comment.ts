@@ -70,4 +70,23 @@ router.post('/', verifyToken, async (req: RequestWithUser, res: Response) => {
     }
 });
 
+/* --- DELETE COMMENT --- */
+router.delete('/:id', verifyToken, async (req: RequestWithUser, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        pool.query("DELETE FROM post_comments WHERE cid = $1", [id], (error: Error, results: QueryResult<any>) => {
+            if(error) {
+                throw error;
+            }
+            res.status(200).json({
+                message: `Comment with ID: ${id} deleted successfully!`,
+                results: results.rows
+            });
+        });
+    } catch (error) {
+        console.log('Error: ', error);
+        res.status(500).send('Internal Server Error\n' + error);
+    }
+});
+
 export default router;
